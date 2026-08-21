@@ -189,14 +189,50 @@ export function simulateOptimization(params = {}) {
 
 export function getMockChatResponse(queryText) {
   const q = (queryText || '').toLowerCase();
-  if (q.includes('makespan') || q.includes('bitiş') || q.includes('süresi')) {
-    return 'Mevcut fabrika planı Makespan süresi **38.0 Saat** olarak hesaplanmıştır. 4 iş emri (17 operasyon) kısıtlar korunarak dizilmiştir.';
+  
+  if (q.includes('darboğaz') || q.includes('kapasite') || q.includes('kritik')) {
+    return {
+      text: 'MND AI Analizi: Fabrikanızdaki en kritik darboğaz tezgahı **RES_CNC_01 (5-Eksen CNC İşleme Merkezi)** tezgahıdır. Bu tezgahtaki yük yoğunluğunu dengelemek ve toplam Makespan süresini minimize etmek için hazırlanan optimizasyon senaryosu aşağıdadır.',
+      suggestedRequest: { objectiveType: 'MAKESPAN' },
+      intent: 'MAKESPAN_MINIMIZATION'
+    };
   }
-  if (q.includes('arıza') || q.includes('bakım') || q.includes('cnc')) {
-    return 'RES_CNC_01 tezgahında arıza simülasyonu yapıldığında, 5-Eksen CNC işleri otomatik olarak RES_CNC_02 tezgahına aktarılır. Makespan %8.5 uzayabilir.';
+
+  if (q.includes('gecikme') || q.includes('tardiness') || q.includes('teslim')) {
+    return {
+      text: 'MND AI Analizi: Gecikme Enküçültme (TARDINESS) hedef fonksiyonu çalıştırıldığında, teslim süresi yaklaşan yüksek öncelikli iş emirleri (WO-2026-001 & WO-2026-002) öne çekilir ve gecikme riski %0 seviyesine düşürülür.',
+      suggestedRequest: { objectiveType: 'TARDINESS' },
+      intent: 'TARDINESS_MINIMIZATION'
+    };
   }
-  if (q.includes('wo-2026-001') || q.includes('türbin')) {
-    return 'WO-2026-001 (Türbin Kanatçık Seti) en yüksek önceliğe (Priority 3) sahiptir ve 15.0 saatte tamamlanarak teslim tarihine (24.0 Sa) yetişmektedir.';
+
+  if (q.includes('arıza') || q.includes('bakım') || q.includes('res_cnc_01')) {
+    return {
+      text: 'MND AI Bakım Analizi: RES_CNC_01 tezgahı devre dışı bırakıldığında (arıza/bakım durumu), Kaba Talaş Kaldırma operasyonları otomatik olarak **RES_CNC_02 (3-Eksen CNC)** tezgahına yönlendirilir. Fabrika Makespan süresi kısıtlar korunarak hesaplanmıştır.',
+      suggestedRequest: { objectiveType: 'MAKESPAN', disabledResourceIds: ['RES_CNC_01'] },
+      intent: 'BREAKDOWN_SIMULATION'
+    };
   }
-  return 'MND EdgePlan-AI Hibrit Optimizasyon Motoru aktif. Gantt şeması, tezgah yük dağılımları ve arıza senaryoları hakkında sorularınızı sorabilirsiniz.';
+
+  if (q.includes('acil') || q.includes('wo-2026-001') || q.includes('wo-2026-004') || q.includes('öncelik')) {
+    return {
+      text: 'MND AI Öncelik Talebi: WO-2026-001 Türbin Kanatçık Seti siparişi için en yüksek öncelik seviyesi (Priority 3) tanımlanmıştır. Bu sipariş hatta ilk sıraya alınarak 15.0 saatte tamamlanmaktadır.',
+      suggestedRequest: { objectiveType: 'MAKESPAN', priorityOverrides: { 'WO-2026-001': 3 } },
+      intent: 'PRIORITY_OVERRIDE'
+    };
+  }
+
+  if (q.includes('oee') || q.includes('maliyet') || q.includes('balanced') || q.includes('dengeli')) {
+    return {
+      text: 'MND AI Dengeli Yükleme Analizi: BALANCED stratejisi seçildiğinde tezgah kullanım oranları homojen (%94.2) dağıtılır. Aşırı yıpranma önlenir ve bakım maliyetleri %12 düşürülür.',
+      suggestedRequest: { objectiveType: 'BALANCED' },
+      intent: 'BALANCED_LOAD'
+    };
+  }
+
+  return {
+    text: `MND AI Üretim Danışmanı: "${queryText}" talebinizi inceledim. Fabrika kısıtları (tezgah yetkinlikleri, seri sırası, vardiya bakımları) göz önüne alınarak en optimal çizelgeleme önerisi hazırlanmıştır.`,
+    suggestedRequest: { objectiveType: 'MAKESPAN' },
+    intent: 'GENERAL_PRODUCTION_ADVICE'
+  };
 }

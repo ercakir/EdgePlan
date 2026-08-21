@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bot, Send, Sparkles, ShieldCheck, HelpCircle, Zap, AlertTriangle, CheckCircle2, Lock, FileCode, ChevronUp, X } from 'lucide-react';
+import { sendChatMessage, inspectIntent } from '../services/api';
 
 export default function AiChatbotPanel({ onApplySuggestedRequest, isOptimizing, userRole, onClose }) {
   const [messages, setMessages] = useState([
@@ -63,23 +64,13 @@ export default function AiChatbotPanel({ onApplySuggestedRequest, isOptimizing, 
     setIsTyping(true);
 
     try {
-      // 1. Fetch AI Chat Advice
-      const chatRes = await fetch('http://localhost:8080/api/v1/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: textToSend })
-      });
-      const chatData = await chatRes.json();
+      // 1. Fetch AI Chat Advice via resilient API service
+      const chatData = await sendChatMessage(textToSend);
 
       // 2. Fetch Intent Inspection Grounding
       let intentInspection = null;
       try {
-        const intentRes = await fetch('http://localhost:8080/api/v1/intent/inspect', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ textInstruction: textToSend })
-        });
-        intentInspection = await intentRes.json();
+        intentInspection = await inspectIntent(textToSend);
       } catch (err) {
         console.warn('Intent inspection fetch skipped:', err);
       }
